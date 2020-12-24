@@ -5,6 +5,9 @@
 #include "shader.h"
 #include "mesh.h"
 #include "bird.h"
+#include "camera.h"
+
+#include <glm/gtc/matrix_transform.hpp>
 
 GLFWwindow *window;
 int width, height;
@@ -63,6 +66,10 @@ int main(){
 
 	glViewport(0, 0, width, height);
 
+	Camera camera;
+	camera.setPosition(glm::vec3(0, 0, 1));
+	camera.lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+
 	Mesh mesh;
 
 	mesh.addVertex(-0.5f, -0.5f, 0.0f);
@@ -86,7 +93,8 @@ int main(){
 	while(!glfwWindowShouldClose(window)){
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		bird.draw();
+    	glm::mat4 projection = glm::perspective(glm::radians(90.0f), (float)width / (float)height, 0.1f, 100.0f);
+		bird.draw(camera.getViewMatrix(), projection);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

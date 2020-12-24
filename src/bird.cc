@@ -28,7 +28,11 @@ void Bird::setMesh(Mesh &m){
     glBindVertexArray(0);
 }
 
-void Bird::draw(){
+void Bird::draw(glm::mat4 view, glm::mat4 projection){
+    glm::mat4 model = glm::mat4(1);
+	glm::mat4 modelViewProjection = projection * view * model;
+	shader->setUniform("modelViewProjection", modelViewProjection);
+
     shader->use();
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, Bird::mesh->getNumTriangles() * 3, GL_UNSIGNED_INT, 0);
