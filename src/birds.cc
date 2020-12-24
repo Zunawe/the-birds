@@ -8,50 +8,6 @@
 GLFWwindow *window;
 int width, height;
 
-
-/**
- * Initialization that should happen after a GL context has been created.
- */
-void postContextCreation(){
-	// glfwSetFramebufferSizeCallback(window, resizeWindow);
-	// glfwSetCursorPosCallback(window, mouseMoveCallback);
-
-	glEnable(GL_DEPTH_TEST);
-
-	// Shader::DEFAULT_SHADER.loadFile("data/shaders/forward.vs", GL_VERTEX_SHADER);
-	// Shader::DEFAULT_SHADER.loadFile("data/shaders/forward.fs", GL_FRAGMENT_SHADER);
-	// Shader::DEFAULT_SHADER.link();
-
-	// lightingShader.loadFile("data/shaders/quad.vs", GL_VERTEX_SHADER);
-	// lightingShader.loadFile("data/shaders/lighting.fs", GL_FRAGMENT_SHADER);
-	// lightingShader.link();
-
-	// gBufferShader.loadFile("data/shaders/gbuffer.vs", GL_VERTEX_SHADER);
-	// gBufferShader.loadFile("data/shaders/gbuffer.fs", GL_FRAGMENT_SHADER);
-	// gBufferShader.link();
-
-	// SSAOShader.loadFile("data/shaders/quad.vs", GL_VERTEX_SHADER);
-	// SSAOShader.loadFile("data/shaders/ssao.fs", GL_FRAGMENT_SHADER);
-	// SSAOShader.link();
-
-	// SSAOBlurShader.loadFile("data/shaders/quad.vs", GL_VERTEX_SHADER);
-	// SSAOBlurShader.loadFile("data/shaders/ssao_blur.fs", GL_FRAGMENT_SHADER);
-	// SSAOBlurShader.link();
-
-	// Material::DEFAULT_MATERIAL = Material();
-
-	// initializeGBuffer();
-	// initializeSSAOBuffer();
-
-	glfwSwapInterval(0);
-
-	// std::vector<glm::vec3> kernelSSAO = generateSampleKernelSSAO(NUM_KERNEL_SAMPLES);
-	// for(unsigned int i = 0; i < NUM_KERNEL_SAMPLES; ++i){
-		// SSAOShader.setUniform("samples[" + std::to_string(i) + "]", kernelSSAO[i]);
-	// }
-	// rotationNoiseSSAO = generateRotationNoiseTextureSSAO();
-}
-
 /**
  * GLFW callback for when the window is resized. Resets the viewport and records
  * the new width and height.
