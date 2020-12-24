@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 
 #include "shader.h"
+#include "mesh.h"
 
 GLFWwindow *window;
 int width, height;
@@ -106,17 +107,14 @@ int main(){
 
 	glViewport(0, 0, width, height);
 
-	float vertices[] = {
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.5f, 0.5f, 0.0f,
-		-0.5f, 0.5f, 0.0f
-	};
+	Mesh mesh;
 
-	unsigned int indices[] = {
-		0, 2, 3,
-		0, 1, 2
-	};
+	mesh.addVertex(-0.5f, -0.5f, 0.0f);
+	mesh.addVertex(0.5f, -0.5f, 0.0f);
+	mesh.addVertex(0.5f, 0.5f, 0.0f);
+	mesh.addVertex(-0.5f, 0.5f, 0.0f);
+	mesh.addTriangle(0, 2, 3);
+	mesh.addTriangle(0, 1, 2);
 
 	Shader shader;
 	shader.loadFile("data/vertex.glsl", GL_VERTEX_SHADER);
@@ -135,11 +133,13 @@ int main(){
 	glBindVertexArray(VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, Mesh::VERTEX_SIZE * mesh.getNumVertices(), mesh.getVertices(), GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * mesh.getNumTriangles() * 3, mesh.getIndices(), GL_STATIC_DRAW);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 	glBindVertexArray(0);
 
 
