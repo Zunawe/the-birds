@@ -72,12 +72,17 @@ int main(){
 
 	Mesh mesh;
 
-	mesh.addVertex(-0.5f, -0.5f, 0.0f);
-	mesh.addVertex(0.5f, -0.5f, 0.0f);
-	mesh.addVertex(0.5f, 0.5f, 0.0f);
-	mesh.addVertex(-0.5f, 0.5f, 0.0f);
-	mesh.addTriangle(0, 2, 3);
+	mesh.addVertex(-0.5f, 0.0f, 0.0f);
+	mesh.addVertex(0.5f, 0.25f, 0.25f);
+	mesh.addVertex(0.5f, 0.25f, -0.25f);
+	mesh.addVertex(0.5f, -0.25f, -0.25f);
+	mesh.addVertex(0.5f, -0.25f, 0.25f);
 	mesh.addTriangle(0, 1, 2);
+	mesh.addTriangle(0, 2, 3);
+	mesh.addTriangle(0, 3, 4);
+	mesh.addTriangle(0, 4, 1);
+	mesh.addTriangle(1, 3, 2);
+	mesh.addTriangle(1, 4, 3);
 
 	Bird::setMesh(mesh);
 
@@ -89,11 +94,15 @@ int main(){
 	Bird::setShader(shader);
 
 	Bird bird;
+	bird.scale(0.5f);
+	bird.translate(glm::vec3(0.5f, 0, 0));
+	bird.rotate(glm::radians(30.0f), glm::vec3(0, 0, 1));
+
+	glm::mat4 projection = glm::perspective(glm::radians(90.0f), (float)width / (float)height, 0.1f, 100.0f);
 
 	while(!glfwWindowShouldClose(window)){
 		glClear(GL_COLOR_BUFFER_BIT);
 
-    	glm::mat4 projection = glm::perspective(glm::radians(90.0f), (float)width / (float)height, 0.1f, 100.0f);
 		bird.draw(camera.getViewMatrix(), projection);
 
 		glfwSwapBuffers(window);
