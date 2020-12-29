@@ -1,115 +1,138 @@
-#include <iostream>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include <memory>
 
-#include "shader.h"
-#include "mesh.h"
-#include "bird.h"
-#include "camera.h"
+#include "glm/ext.hpp"
 
-#include <glm/gtc/matrix_transform.hpp>
+#include "ariamis/engine.h"
+#include "ariamis/scene.h"
+#include "ariamis/obj_loader.h"
+#include "ariamis/light.h"
 
-GLFWwindow *window;
-int width, height;
-
-/**
- * GLFW callback for when the window is resized. Resets the viewport and records
- * the new width and height.
- */
-void resizeWindow(GLFWwindow * /*window*/, int newWidth, int newHeight){
-	glViewport(0, 0, newWidth, newHeight);
-	width = newWidth;
-	height = newHeight;
-}
-
-/**
- * Create the GLFW window that will contain the GL context and initialize
- * things that require said context. You should do this before creating any
- * other instances of anything from this library.
- */
-GLFWwindow* createWindow(const char *name){
-	glfwDestroyWindow(window);
-
-	if(!glfwInit()){
-		throw std::runtime_error("Failed to initialize GLFW");
-	}
-
-	const GLFWvidmode *mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-	width = mode->width;
-	height = mode->height;
-
-	window = glfwCreateWindow(width, height, name, NULL, NULL);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	glfwMakeContextCurrent(window);
-
-	if(!gladLoadGL()){
-		throw std::runtime_error("Failed to Load GLAD");
-	}
-
-	glfwSetFramebufferSizeCallback(window, resizeWindow);
-
-	return window;
-}
-
-/**
- * Closes the window after the current frame finishes rendering.
- */
-void quit(){
-	glfwSetWindowShouldClose(window, true);
-}
+void setCameraMovement();
+Mesh createBirdMesh();
 
 int main(){
-    createWindow("The Birds");
+	Engine::createWindow("Birds");
 
-	glViewport(0, 0, width, height);
+	Scene scene;
 
-	Camera camera;
-	camera.setPosition(glm::vec3(0, 0, 1));
-	camera.lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	std::shared_ptr<Object> bird(new Object());
+	bird->renderer.setMesh(createBirdMesh());
 
-	Mesh mesh;
+	bird->position = glm::vec3(0, 0, 0);
 
-	mesh.addVertex(-0.5f, 0.0f, 0.0f);
-	mesh.addVertex(0.5f, 0.25f, 0.25f);
-	mesh.addVertex(0.5f, 0.25f, -0.25f);
-	mesh.addVertex(0.5f, -0.25f, -0.25f);
-	mesh.addVertex(0.5f, -0.25f, 0.25f);
-	mesh.addTriangle(0, 1, 2);
-	mesh.addTriangle(0, 2, 3);
-	mesh.addTriangle(0, 3, 4);
-	mesh.addTriangle(0, 4, 1);
-	mesh.addTriangle(1, 3, 2);
-	mesh.addTriangle(1, 4, 3);
+	scene.objects.push_back(bird);
 
-	Bird::setMesh(mesh);
+	// Lights
+	std::shared_ptr<PointLight> pointLight(new PointLight());
+	pointLight->position = glm::vec4(0, 1, -3, 1);
+	pointLight->diffuse = glm::vec3(0.3f, 0.3f, 0.3f);
+	pointLight->ambient = glm::vec3(0.7f, 0.7f, 0.7f);
+	pointLight->specular = glm::vec3(0.4f, 0.4f, 0.4f);
+	pointLight->kc = 1.0f;
+	pointLight->kl = 0.05f;
+	pointLight->kq = 0.001f;
+	scene.lights.push_back(pointLight);
 
-	Shader shader;
-	shader.loadFile("data/vertex.glsl", GL_VERTEX_SHADER);
-	shader.loadFile("data/fragment.glsl", GL_FRAGMENT_SHADER);
-	shader.link();
+	// Input
+	Camera &camera = scene.camera;
+	Engine::registerKeyEvent(GLFW_KEY_ESCAPE, [](float /*dt*/){
+		Engine::quit();
+	});
 
-	Bird::setShader(shader);
+    camera.setPosition(glm::vec3(0, 5, 12));
+    camera.lookAt(glm::vec3(0, 0, 0));
 
-	Bird bird;
-	bird.scale(0.5f);
-	bird.translate(glm::vec3(0.5f, 0, 0));
-	bird.rotate(glm::radians(30.0f), glm::vec3(0, 0, 1));
+	Engine::registerKeyEvent(GLFW_KEY_ESCAPE, [](float /*dt*/){
+		Engine::quit();
+	});
 
-	glm::mat4 projection = glm::perspective(glm::radians(90.0f), (float)width / (float)height, 0.1f, 100.0f);
+	Engine::playScene(scene);
+}
 
-	while(!glfwWindowShouldClose(window)){
-		glClear(GL_COLOR_BUFFER_BIT);
+Mesh createBirdMesh(){
+    Mesh mesh;
 
-		bird.draw(camera.getViewMatrix(), projection);
+    mesh.addVertex(glm::vec3(-0.5f, 0.0f, 0.0f));
+    mesh.addVertex(glm::vec3(0.5f, 0.25f, 0.25f));
+    mesh.addVertex(glm::vec3(0.5f, 0.25f, -0.25f));
 
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-	}
+    mesh.addVertex(glm::vec3(-0.5f, 0.0f, 0.0f));
+    mesh.addVertex(glm::vec3(0.5f, 0.25f, -0.25f));
+    mesh.addVertex(glm::vec3(0.5f, -0.25f, -0.25f));
 
-	glfwTerminate();
+    mesh.addVertex(glm::vec3(-0.5f, 0.0f, 0.0f));
+    mesh.addVertex(glm::vec3(0.5f, -0.25f, -0.25f));
+    mesh.addVertex(glm::vec3(0.5f, -0.25f, 0.25f));
 
-	return 0;
+    mesh.addVertex(glm::vec3(-0.5f, 0.0f, 0.0f));
+    mesh.addVertex(glm::vec3(0.5f, -0.25f, 0.25f));
+    mesh.addVertex(glm::vec3(0.5f, 0.25f, 0.25f));
+
+    mesh.addVertex(glm::vec3(0.5f, 0.25f, 0.25f));
+    mesh.addVertex(glm::vec3(0.5f, -0.25f, -0.25f));
+    mesh.addVertex(glm::vec3(0.5f, 0.25f, -0.25f));
+
+    mesh.addVertex(glm::vec3(0.5f, 0.25f, 0.25f));
+    mesh.addVertex(glm::vec3(0.5f, -0.25f, 0.25f));
+    mesh.addVertex(glm::vec3(0.5f, -0.25f, -0.25f));
+
+    mesh.addTriangle(0, 1, 2);
+    mesh.addTriangle(3, 4, 5);
+    mesh.addTriangle(6, 7, 8);
+    mesh.addTriangle(9, 10, 11);
+    mesh.addTriangle(12, 13, 14);
+    mesh.addTriangle(15, 16, 17);
+
+    mesh.calculateFaceNormals(false);
+
+    return mesh;
+}
+
+void setCameraMovement(Camera &camera){
+	float speedMultiplier = 2.0f;
+	Engine::registerKeyEvent(GLFW_KEY_W, [&camera, speedMultiplier](float dt){
+		camera.moveRelative(glm::vec3(0, 0, 1), dt * speedMultiplier);
+	});
+	Engine::registerKeyEvent(GLFW_KEY_S, [&camera, speedMultiplier](float dt){
+		camera.moveRelative(glm::vec3(0, 0, -1), dt * speedMultiplier);
+	});
+	Engine::registerKeyEvent(GLFW_KEY_A, [&camera, speedMultiplier](float dt){
+		camera.moveRelative(glm::vec3(-1, 0, 0), dt * speedMultiplier);
+	});
+	Engine::registerKeyEvent(GLFW_KEY_D, [&camera, speedMultiplier](float dt){
+		camera.moveRelative(glm::vec3(1, 0, 0), dt * speedMultiplier);
+	});
+	Engine::registerKeyEvent(GLFW_KEY_SPACE, [&camera, speedMultiplier](float dt){
+		camera.moveRelative(glm::vec3(0, 1, 0), dt * speedMultiplier);
+	});
+	Engine::registerKeyEvent(GLFW_KEY_LEFT_SHIFT, [&camera, speedMultiplier](float dt){
+		camera.moveRelative(glm::vec3(0, -1, 0), dt * speedMultiplier);
+	});
+
+	// Need to set yaw and pitch based on the original camera position
+	float yaw = glm::degrees(atan(camera.getForward().z / camera.getForward().x));
+	float pitch = glm::degrees(asin(camera.getForward().y));
+	double lastX, lastY;
+	float sensitivity = 0.1f;
+	glfwGetCursorPos(Engine::getWindow(), &lastX, &lastY);
+	Engine::registerMouseMoveEvent([&yaw, &pitch, &lastX, &lastY, &camera, sensitivity](double x, double y){
+		double dx = (x - lastX) * sensitivity;
+		double dy = (y - lastY) * sensitivity;
+
+		lastX = x;
+		lastY = y;
+
+		yaw += dx;
+		pitch -= dy;
+
+		yaw = yaw > 360.0f ? yaw - 360.0f : (yaw < 0.0 ? yaw + 360.0f : yaw);
+		pitch = pitch > 89.0f ? 89.0f : (pitch < -89.0f ? -89.0f : pitch);
+
+		glm::vec3 cameraForward;
+		cameraForward.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
+		cameraForward.y = sin(glm::radians(pitch));
+		cameraForward.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+
+		camera.setForward(cameraForward);
+	});
 }
