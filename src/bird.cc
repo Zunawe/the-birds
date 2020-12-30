@@ -1,5 +1,6 @@
 #include "bird.h"
 
+#include <math.h>
 #include "ariamis/engine.h"
 
 #include <glm/glm.hpp>
@@ -12,6 +13,7 @@ Bird::Bird(){
         Bird *bird = (Bird*)o;
         float dt = Engine::getDeltaTime();
         bird->position += bird->velocity * dt;
-        // bird->rotation = glm::quatLookAt(glm::normalize(bird->velocity - glm::vec3(1, 0, 0)), glm::vec3(0, 1, 0));
+        bird->rotation = glm::quat(1, 0, 0, 0);
+        bird->rotate(acos(glm::dot(glm::normalize(bird->velocity), glm::vec3(1, 0, 0))), glm::cross(glm::vec3(1, 0, 0), glm::normalize(bird->velocity)));
     });
 }
