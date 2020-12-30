@@ -30,12 +30,14 @@ void boids1(Bird &me, const std::vector<std::shared_ptr<Object>> &birds){
 	glm::vec3 center(0, 0, 0);
 	for(auto it = birds.begin(); it != birds.end(); ++it){
 		if((*it).get() != &me){
-			center += (*it)->position;
+			if(glm::length((*it)->position - me.position) < 10.0f){
+				center += (*it)->position;
+			}
 		}
 	}
 	center /= birds.size() - 1;
 
-	me.velocity += (center - me.position) * 0.0008f;
+	me.velocity += (center - me.position) * 0.003f;
 }
 
 void boids2(Bird &me, const std::vector<std::shared_ptr<Object>> &birds){
@@ -55,12 +57,14 @@ void boids3(Bird &me, const std::vector<std::shared_ptr<Object>> &birds){
 	glm::vec3 direction(0, 0, 0);
 	for(auto it = birds.begin(); it != birds.end(); ++it){
 		if((*it).get() != &me){
-			direction += ((Bird*)(*it).get())->velocity;
+			if(glm::length((*it)->position - me.position) < 7.0f){
+				direction += ((Bird*)(*it).get())->velocity;
+			}
 		}
 	}
 	direction /= birds.size() - 1;
 
-	me.velocity += direction * 0.00015f;
+	me.velocity += direction * 0.0012f;
 }
 
 void boids4(Bird &me){
@@ -78,7 +82,7 @@ void boids5(Bird &me){
 }
 
 void boids6(Bird &me, float now){
-	me.velocity += wind(me.position, now) * 0.008f;
+	me.velocity += wind(me.position, now) * 0.016f;
 }
 
 float randomFloat(float min, float max){
@@ -89,13 +93,14 @@ int main(){
 	srand(time(0));
 
 	Engine::createWindow("Birds");
+	glClearColor(4.0f / 255.0f, 11.0f / 255.0f, 15.0f / 255.0f, 1.0f);
 
 	Scene scene;
 
     Mesh birdMesh = createBirdMesh();
 	Material birdMaterial = createBirdMaterial();
 	glm::vec3 initialVelocity(randomFloat(-3.0f, 3.0f), randomFloat(-3.0f, 3.0f), randomFloat(-3.0f, 3.0f));
-    for(unsigned int i = 0; i < 100; ++i){
+    for(unsigned int i = 0; i < 80; ++i){
 	    std::shared_ptr<Bird> bird(new Bird());
 	    bird->renderer.setMesh(birdMesh);
 		bird->renderer.setMaterial(birdMaterial);
