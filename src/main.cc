@@ -64,7 +64,7 @@ void boids3(Bird &me, const std::vector<std::shared_ptr<Object>> &birds){
 	}
 	direction /= birds.size() - 1;
 
-	me.velocity += direction * 0.0012f;
+	me.velocity += direction * 0.0006f;
 }
 
 void boids4(Bird &me){
@@ -92,15 +92,15 @@ float randomFloat(float min, float max){
 int main(){
 	srand(time(0));
 
-	Engine::createWindow("Birds");
-	glClearColor(4.0f / 255.0f, 11.0f / 255.0f, 15.0f / 255.0f, 1.0f);
+	Engine::createWindow("Birds", 1920, 1080, false);
+	Engine::setTickRate(120.0f);
 
 	Scene scene;
 
     Mesh birdMesh = createBirdMesh();
 	Material birdMaterial = createBirdMaterial();
 	glm::vec3 initialVelocity(randomFloat(-3.0f, 3.0f), randomFloat(-3.0f, 3.0f), randomFloat(-3.0f, 3.0f));
-    for(unsigned int i = 0; i < 80; ++i){
+    for(unsigned int i = 0; i < 50; ++i){
 	    std::shared_ptr<Bird> bird(new Bird());
 	    bird->renderer.setMesh(birdMesh);
 		bird->renderer.setMaterial(birdMaterial);
