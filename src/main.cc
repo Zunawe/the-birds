@@ -4,19 +4,21 @@
 #include <iostream>
 #include <math.h>
 
-#include "glm/ext.hpp"
+#include <glm/ext.hpp>
 
-#include "ariamis/engine.h"
-#include "ariamis/scene.h"
-#include "ariamis/obj_loader.h"
-#include "ariamis/light.h"
-#include "ariamis/material.h"
+#include <ariamis/engine.h>
+#include <ariamis/scene.h>
+#include <ariamis/obj_loader.h>
+#include <ariamis/light.h>
+#include <ariamis/material.h>
 
-#include "bird.h"
+#include <bird.h>
+
+using namespace Ariamis;
 
 void setCameraMovement();
 Mesh createBirdMesh();
-Material createBirdMaterial();
+std::shared_ptr<Material> createBirdMaterial();
 glm::vec3 wind(glm::vec3 position);
 
 glm::vec3 wind(glm::vec3 position, float time){
@@ -57,14 +59,14 @@ void boids3(Bird &me, const std::vector<std::shared_ptr<Object>> &birds){
 	glm::vec3 direction(0, 0, 0);
 	for(auto it = birds.begin(); it != birds.end(); ++it){
 		if((*it).get() != &me){
-			if(glm::length((*it)->position - me.position) < 7.0f){
+			if(glm::length((*it)->position - me.position) < 10.0f){
 				direction += ((Bird*)(*it).get())->velocity;
 			}
 		}
 	}
 	direction /= birds.size() - 1;
 
-	me.velocity += direction * 0.0006f;
+	me.velocity += direction * 0.001f;
 }
 
 void boids4(Bird &me){
@@ -75,14 +77,14 @@ void boids4(Bird &me){
 }
 
 void boids5(Bird &me){
-	float maxSpeed = 10.0f;
+	float maxSpeed = 12.0f;
 	if(glm::length(me.velocity) >= maxSpeed){
 		me.velocity = glm::normalize(me.velocity) * maxSpeed;
 	}
 }
 
 void boids6(Bird &me, float now){
-	me.velocity += wind(me.position, now) * 0.016f;
+	me.velocity += wind(me.position, now) * 0.04f;
 }
 
 float randomFloat(float min, float max){
@@ -97,18 +99,18 @@ int main(){
 
 	Scene scene;
 
-    Mesh birdMesh = createBirdMesh();
-	Material birdMaterial = createBirdMaterial();
+	Mesh birdMesh = createBirdMesh();
+	auto birdMaterial = createBirdMaterial();
 	glm::vec3 initialVelocity(randomFloat(-3.0f, 3.0f), randomFloat(-3.0f, 3.0f), randomFloat(-3.0f, 3.0f));
-    for(unsigned int i = 0; i < 50; ++i){
-	    std::shared_ptr<Bird> bird(new Bird());
-	    bird->renderer.setMesh(birdMesh);
+	for(unsigned int i = 0; i < 50; ++i){
+		std::shared_ptr<Bird> bird(new Bird());
+		bird->renderer.setMesh(birdMesh);
 		bird->renderer.setMaterial(birdMaterial);
-        bird->position = glm::vec3(randomFloat(-10.0f, 10.0f), randomFloat(-10.0f, 10.0f), randomFloat(-10.0f, 10.0f));
-        bird->velocity = initialVelocity + glm::vec3(randomFloat(-3.0f, 3.0f), randomFloat(-3.0f, 3.0f), randomFloat(-3.0f, 3.0f));
-        scene.objects.push_back(bird);
+		bird->position = glm::vec3(randomFloat(-10.0f, 10.0f), randomFloat(-10.0f, 10.0f), randomFloat(-10.0f, 10.0f));
+		bird->velocity = initialVelocity + glm::vec3(randomFloat(-3.0f, 3.0f), randomFloat(-3.0f, 3.0f), randomFloat(-3.0f, 3.0f));
+		scene.objects.push_back(bird);
 
-        bird->addBehavior("boids", [&scene](Object *o){
+		bird->addBehavior("boids", [&scene](Object *o){
 			float now = Engine::getTime();
 			Bird *bird = (Bird*)o;
 
@@ -118,8 +120,8 @@ int main(){
 			boids4(*bird);
 			boids5(*bird);
 			boids6(*bird, now);
-        });
-    }
+		});
+	}
 
 	// Lights
 	std::shared_ptr<PointLight> pointLight(new PointLight());
@@ -132,15 +134,11 @@ int main(){
 	pointLight->kq = 0.001f;
 	scene.lights.push_back(pointLight);
 
-	// Input
 	Camera &camera = scene.camera;
-	Engine::registerKeyEvent(GLFW_KEY_ESCAPE, [](float /*dt*/){
-		Engine::quit();
-	});
+	camera.setPosition(glm::vec3(0, 15, 45));
+	camera.lookAt(glm::vec3(0, 0, 0));
 
-    camera.setPosition(glm::vec3(0, 15, 45));
-    camera.lookAt(glm::vec3(0, 0, 0));
-
+	// Input
 	Engine::registerKeyEvent(GLFW_KEY_ESCAPE, [](float /*dt*/){
 		Engine::quit();
 	});
@@ -187,9 +185,9 @@ Mesh createBirdMesh(){
     return mesh;
 }
 
-Material createBirdMaterial(){
-	Material material;
-	material.diffuse = glm::vec3(37.0f / 255.0f, 168.0f / 255.0f, 146.0f / 255.0f);
+std::shared_ptr<Material> createBirdMaterial(){
+	std::shared_ptr<Material> material(new Material());
+	material->diffuse = glm::vec3(37.0f / 255.0f, 168.0f / 255.0f, 146.0f / 255.0f);
 	return material;
 }
 
